@@ -589,218 +589,157 @@
     </main>
   </div>
   <script>
-    const filterForm = document.querySelector('form[action="/sales"]');
-    const searchInput = document.getElementById('salesSearchInput');
-    const fromDateInput = document.getElementById('salesFromDate');
-    const toDateInput = document.getElementById('salesToDate');
-    const clearSearchBtn = document.getElementById('clearSearch');
-    const densityToggle = document.getElementById('toggleDensity');
-    const table = document.getElementById('salesTable');
+    (() => {
+      const filterForm = document.querySelector('form[action="/sales"]');
+      const searchInput = document.getElementById('salesSearchInput');
+      const fromDateInput = document.getElementById('salesFromDate');
+      const toDateInput = document.getElementById('salesToDate');
+      const clearSearchBtn = document.getElementById('clearSearch');
+      const densityToggle = document.getElementById('toggleDensity');
+      const table = document.getElementById('salesTable');
+      const selectAll = document.getElementById('selectAll');
+      const selectedCount = document.getElementById('bulkSelected');
+      const checkboxes = Array.from(document.querySelectorAll('.sale-checkbox'));
+      const bulkApply = document.getElementById('bulkApply');
+      const bulkAction = document.getElementById('bulkAction');
 
-    /**
-     * Executes the formatDateForInput function.
-     * @param {*} date Input parameter used by this function.
-     * @returns {any} Result produced by this function.
-     * @throws {Error} May throw runtime errors from DOM, network, or dependency operations.
-     * Edge cases: Null, undefined, and empty inputs are handled by the existing implementation.
-     */
-    function formatDateForInput(date) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
+      const formatDateForInput = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
 
-    /**
-     * Executes the applyDateRange function.
-     * @param {*} rangeType Input parameter used by this function.
-     * @returns {any} Result produced by this function.
-     * @throws {Error} May throw runtime errors from DOM, network, or dependency operations.
-     * Edge cases: Null, undefined, and empty inputs are handled by the existing implementation.
-     */
-    function applyDateRange(rangeType) {
-      if (!fromDateInput || !toDateInput || !filterForm) return;
-      const today = new Date();
-      const end = formatDateForInput(today);
-      let startDate = new Date(today);
-      if (rangeType === 'today') {
-        // Keep start as today.
-    /**
-     * Executes the applyDateRange function.
-     * @param {*} rangeType Input parameter used by this function.
-     * @returns {any} Result produced by this function.
-     * @throws {Error} May throw runtime errors from DOM, network, or dependency operations.
-     * Edge cases: Null, undefined, and empty inputs are handled by the existing implementation.
-     */
-    /**
-     * Executes the applyDateRange function.
-     * @param {*} rangeType Input parameter used by this function.
-     * @returns {any} Result produced by this function.
-     * @throws {Error} May throw runtime errors from DOM, network, or dependency operations.
-     * Edge cases: Null, undefined, and empty inputs are handled by the existing implementation.
-     */
-    /**
-     * Executes the applyDateRange function.
-     * @param {*} rangeType Input parameter used by this function.
-     * @returns {any} Result produced by this function.
-     * @throws {Error} May throw runtime errors from DOM, network, or dependency operations.
-     * Edge cases: Null, undefined, and empty inputs are handled by the existing implementation.
-     */
-      } else if (rangeType === 'month') {
-        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-      } else {
-        const days = Number.parseInt(rangeType, 10);
-        if (!Number.isFinite(days) || days <= 0) return;
-        startDate.setDate(today.getDate() - (days - 1));
+      const applyDateRange = (rangeType) => {
+        if (!fromDateInput || !toDateInput || !filterForm) return;
+        const today = new Date();
+        const end = formatDateForInput(today);
+        let startDate = new Date(today);
+        if (rangeType === 'month') {
+          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        } else if (rangeType !== 'today') {
+          const days = Number.parseInt(rangeType, 10);
+          if (!Number.isFinite(days) || days <= 0) return;
+          startDate.setDate(today.getDate() - (days - 1));
+        }
+        fromDateInput.value = formatDateForInput(startDate);
+        toDateInput.value = end;
+        filterForm.submit();
+      };
+
+      document.querySelectorAll('[data-date-range]').forEach((button) => {
+        button.addEventListener('click', () => applyDateRange(button.getAttribute('data-date-range') || ''));
+      });
+
+      if (clearSearchBtn && searchInput) {
+        clearSearchBtn.addEventListener('click', () => {
+          searchInput.value = '';
+          searchInput.focus();
+        });
       }
-      fromDateInput.value = formatDateForInput(startDate);
-      toDateInput.value = end;
-      filterForm.submit();
-    }
 
-    document.querySelectorAll('[data-date-range]').forEach((button) => {
-      button.addEventListener('click', () => applyDateRange(button.getAttribute('data-date-range') || ''));
-    });
-
-    if (clearSearchBtn && searchInput) {
-      clearSearchBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        searchInput.focus();
-      });
-    }
-
-    if (densityToggle && table) {
-      densityToggle.addEventListener('click', () => {
-        const compact = table.classList.toggle('sales-table-compact');
-        densityToggle.textContent = compact ? 'Comfortable rows' : 'Compact rows';
-      });
-    }
-
-    document.addEventListener('keydown', (event) => {
-      const active = document.activeElement;
-      const isTypingField = active && (
-        active.tagName === 'INPUT' ||
-        active.tagName === 'TEXTAREA' ||
-        active.tagName === 'SELECT' ||
-        active.isContentEditable
-      );
-      if (event.key === '/' && !isTypingField && searchInput) {
-        event.preventDefault();
-        searchInput.focus();
+      if (densityToggle && table) {
+        densityToggle.addEventListener('click', () => {
+          const compact = table.classList.toggle('sales-table-compact');
+          densityToggle.textContent = compact ? 'Comfortable rows' : 'Compact rows';
+        });
       }
-    });
 
-    document.querySelectorAll('[data-toggle-details]').forEach((button) => {
-      button.addEventListener('click', () => {
-        const targetId = button.getAttribute('data-toggle-details');
-        const detailsRow = document.querySelector(`[data-details-row="${targetId}"]`);
-        if (!detailsRow) return;
-        const expanded = button.getAttribute('aria-expanded') === 'true';
-        button.setAttribute('aria-expanded', String(!expanded));
-        detailsRow.classList.toggle('hidden');
-        const icon = button.querySelector('svg');
-        if (icon) icon.classList.toggle('rotate-180');
+      document.addEventListener('keydown', (event) => {
+        const active = document.activeElement;
+        const isTypingField = active && (
+          active.tagName === 'INPUT' ||
+          active.tagName === 'TEXTAREA' ||
+          active.tagName === 'SELECT' ||
+          active.isContentEditable
+        );
+        if (event.key === '/' && !isTypingField && searchInput) {
+          event.preventDefault();
+          searchInput.focus();
+        }
       });
-    });
 
-    const selectAll = document.getElementById('selectAll');
-    const selectedCount = document.getElementById('bulkSelected');
-    const checkboxes = Array.from(document.querySelectorAll('.sale-checkbox'));
-    const bulkApply = document.getElementById('bulkApply');
-    const bulkAction = document.getElementById('bulkAction');
-
-    /**
-     * Executes the getSelectedIds function.
-     * @returns {any} Result produced by this function.
-     * @throws {Error} May throw runtime errors from DOM, network, or dependency operations.
-     * Edge cases: Null, undefined, and empty inputs are handled by the existing implementation.
-     */
-    function getSelectedIds() {
-      return checkboxes.filter(cb => cb.checked).map(cb => cb.getAttribute('data-sale-id'));
-    }
-
-    /**
-     * Executes the syncSelectAll function.
-    function syncSelectAll() {
-      if (!selectAll) return;
-      const checkedCount = checkboxes.filter(cb => cb.checked).length;
-      const allChecked = checkedCount === checkboxes.length && checkboxes.length > 0;
-      selectAll.checked = allChecked;
-      selectAll.indeterminate = checkedCount > 0 && !allChecked;
-    /**
-     * Executes the syncSelectAll function.
-     * @returns {any} Result produced by this function.
-     * @throws {Error} May throw runtime errors from DOM, network, or dependency operations.
-     * Edge cases: Null, undefined, and empty inputs are handled by the existing implementation.
-     */
-    /**
-     * Executes the syncSelectAll function.
-     * @returns {any} Result produced by this function.
-     * @throws {Error} May throw runtime errors from DOM, network, or dependency operations.
-     * Edge cases: Null, undefined, and empty inputs are handled by the existing implementation.
-     */
-      if (selectedCount) selectedCount.textContent = String(checkedCount);
-    }
-
-    if (selectAll) {
-    /**
-     * Executes the syncSelectAll function.
-     * @returns {any} Result produced by this function.
-     * @throws {Error} May throw runtime errors from DOM, network, or dependency operations.
-     * Edge cases: Null, undefined, and empty inputs are handled by the existing implementation.
-     */
-      selectAll.addEventListener('change', () => {
-        checkboxes.forEach(cb => { cb.checked = selectAll.checked; });
-        syncSelectAll();
+      document.querySelectorAll('[data-toggle-details]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const targetId = button.getAttribute('data-toggle-details');
+          const detailsRow = document.querySelector(`[data-details-row="${targetId}"]`);
+          if (!detailsRow) return;
+          const expanded = button.getAttribute('aria-expanded') === 'true';
+          button.setAttribute('aria-expanded', String(!expanded));
+          detailsRow.classList.toggle('hidden');
+          const icon = button.querySelector('svg');
+          if (icon) icon.classList.toggle('rotate-180');
+        });
       });
-    }
 
-    checkboxes.forEach(cb => cb.addEventListener('change', syncSelectAll));
-    syncSelectAll();
+      const getSelectedIds = () => checkboxes
+        .filter((cb) => cb.checked)
+        .map((cb) => cb.getAttribute('data-sale-id'))
+        .filter((id) => id && id.trim().length > 0);
 
-    if (bulkApply) {
-      bulkApply.addEventListener('click', () => {
-        const action = bulkAction ? bulkAction.value : "";
-        const ids = getSelectedIds();
-        if (!action) {
-          alert('Choose a bulk action first.');
-          return;
-        }
-        if (ids.length === 0) {
-          alert('Select at least one sale.');
-          return;
-        }
-        if (action === 'export') {
-          const params = new URLSearchParams();
-          ids.forEach(id => params.append('ids', id));
-          window.location.href = `/sales/export?${params.toString()}`;
-          return;
-        }
-        if (action === 'print') {
-          ids.forEach(id => window.open(`/sales/${id}/receipt?print=1`, '_blank'));
-          return;
-        }
-        if (action === 'void') {
-          if (!confirm(`Void ${ids.length} selected sale(s)?`)) {
+      const syncSelectAll = () => {
+        const checkedCount = checkboxes.filter((cb) => cb.checked).length;
+        if (selectedCount) selectedCount.textContent = String(checkedCount);
+        if (!selectAll) return;
+        const allChecked = checkedCount === checkboxes.length && checkboxes.length > 0;
+        selectAll.checked = allChecked;
+        selectAll.indeterminate = checkedCount > 0 && !allChecked;
+      };
+
+      if (selectAll) {
+        selectAll.addEventListener('change', () => {
+          checkboxes.forEach((cb) => {
+            cb.checked = selectAll.checked;
+          });
+          syncSelectAll();
+        });
+      }
+
+      checkboxes.forEach((cb) => cb.addEventListener('change', syncSelectAll));
+      syncSelectAll();
+
+      if (bulkApply) {
+        bulkApply.addEventListener('click', () => {
+          const action = bulkAction ? bulkAction.value : '';
+          const ids = getSelectedIds();
+          if (!action) {
+            alert('Choose a bulk action first.');
             return;
           }
-          const form = document.getElementById('bulkForm');
-          const inputAction = document.getElementById('bulkActionInput');
-          const idsContainer = document.getElementById('bulkIds');
-          if (!form || !inputAction || !idsContainer) return;
-          inputAction.value = 'void';
-          idsContainer.innerHTML = '';
-          ids.forEach(id => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'ids';
-            input.value = id;
-            idsContainer.appendChild(input);
-          });
-          form.submit();
-        }
-      });
-    }
+          if (ids.length === 0) {
+            alert('Select at least one sale.');
+            return;
+          }
+          if (action === 'export') {
+            const params = new URLSearchParams();
+            ids.forEach((id) => params.append('ids', id));
+            window.location.href = `/sales/export?${params.toString()}`;
+            return;
+          }
+          if (action === 'print') {
+            ids.forEach((id) => window.open(`/sales/${id}/receipt?print=1`, '_blank'));
+            return;
+          }
+          if (action === 'void') {
+            if (!confirm(`Void ${ids.length} selected sale(s)?`)) return;
+            const form = document.getElementById('bulkForm');
+            const inputAction = document.getElementById('bulkActionInput');
+            const idsContainer = document.getElementById('bulkIds');
+            if (!form || !inputAction || !idsContainer) return;
+            inputAction.value = 'void';
+            idsContainer.innerHTML = '';
+            ids.forEach((id) => {
+              const input = document.createElement('input');
+              input.type = 'hidden';
+              input.name = 'ids';
+              input.value = id;
+              idsContainer.appendChild(input);
+            });
+            form.submit();
+          }
+        });
+      }
+    })();
   </script>
 </body>
 </html>

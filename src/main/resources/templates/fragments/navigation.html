@@ -110,8 +110,8 @@
       background: #ffffff;
       box-shadow: 0 20px 30px -24px rgba(15, 23, 42, 0.45);
       padding: 0.5rem;
-      max-height: min(26rem, calc(100vh - 6rem));
-      overflow-y: auto;
+      max-height: none;
+      overflow: visible;
     }
     .nav-dropdown[open] .nav-dropdown-menu {
       display: block;
@@ -471,7 +471,7 @@
 
   <script th:src="@{/js/soft-nav.js(v='20260226-1')}" src="/js/soft-nav.js"></script>
   <script th:src="@{/js/breadcrumbs.js(v='20260227-1')}" src="/js/breadcrumbs.js"></script>
-  <script th:src="@{/js/nav-dropdown.js(v='20260226-2')}" src="/js/nav-dropdown.js" defer></script>
+  <script th:src="@{/js/nav-dropdown.js(v='20260228-3')}" src="/js/nav-dropdown.js" defer></script>
   <script th:src="@{/js/lang-switcher.js(v='20260216-3')}" src="/js/lang-switcher.js" defer></script>
 </nav>
 </body>
