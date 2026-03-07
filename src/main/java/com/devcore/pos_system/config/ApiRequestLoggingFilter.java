@@ -1,6 +1,5 @@
 package com.devcore.pos_system.config;
 
-import com.devcore.pos_system.api.v1.support.ApiTrace;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 20)
@@ -32,7 +32,7 @@ public class ApiRequestLoggingFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         long startedAt = System.nanoTime();
-        String traceId = ApiTrace.ensure(request, response);
+        String traceId = ensureTraceId(request, response);
         try {
             filterChain.doFilter(request, response);
         } finally {
@@ -47,6 +47,16 @@ public class ApiRequestLoggingFilter extends OncePerRequestFilter {
                     currentPrincipal()
             );
         }
+    }
+
+    private String ensureTraceId(HttpServletRequest request, HttpServletResponse response) {
+        String traceId = request.getHeader("X-Trace-Id");
+        if (traceId == null || traceId.isBlank()) {
+            traceId = UUID.randomUUID().toString();
+        }
+        request.setAttribute("traceId", traceId);
+        response.setHeader("X-Trace-Id", traceId);
+        return traceId;
     }
 
     private String currentPrincipal() {
